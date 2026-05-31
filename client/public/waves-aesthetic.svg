@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1000" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.0" />
+      <stop offset="30%" stop-color="#ffffff" stop-opacity="0.08" />
+      <stop offset="70%" stop-color="#ffffff" stop-opacity="0.05" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0" />
+    </linearGradient>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- One single, beautiful, non-symmetrical, random-looking wave sweeping across -->
+  <g filter="url(#softGlow)">
+    <path d="M 400 -100 C 900 250 100 600 1100 1200" fill="none" stroke="url(#waveGrad)" stroke-width="25" stroke-linecap="round" />
+  </g>
+  
+  <!-- A sharper central core to the single wave to give it a glass-like optical depth -->
+  <path d="M 400 -100 C 900 250 100 600 1100 1200" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.08" stroke-linecap="round" />
+</svg>

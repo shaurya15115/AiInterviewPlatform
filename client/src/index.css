@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg: #ffffff;
+    --color-surface: #f8fafc;
+    --color-text: #0f172a;
+    --color-text-muted: #64748b;
+    --color-border: rgba(0,0,0,0.1);
+    --dot-color: rgba(0,0,0,0.1);
+  }
+
+  .dark {
+    --color-bg: #09090b;
+    --color-surface: #18181b;
+    --color-text: #f8fafc;
+    --color-text-muted: #94a3b8;
+    --color-border: rgba(255,255,255,0.1);
+    --dot-color: rgba(255,255,255,0.05);
+  }
+
+  body {
+    @apply bg-background text-textMain font-sans antialiased overflow-x-hidden min-h-screen transition-colors duration-300;
+    background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-attachment: fixed;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-surface border border-borderBase rounded-xl shadow-sm transition-colors duration-300;
+  }
+}
