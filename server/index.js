@@ -5,6 +5,14 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
+console.log('🔧 Environment Configuration:');
+console.log('  PORT:', process.env.PORT);
+console.log('  MONGODB_URI:', process.env.MONGODB_URI);
+console.log('  JWT_SECRET:', process.env.JWT_SECRET ? '✓ Set' : '✗ NOT SET');
+console.log('  OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? '✓ Set' : '✗ NOT SET');
+console.log('  CORS_ORIGIN:', process.env.CORS_ORIGIN);
+console.log('  NODE_ENV:', process.env.NODE_ENV);
+
 const authRoutes = require('./routes/auth');
 const interviewRoutes = require('./routes/interview');
 

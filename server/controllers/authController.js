@@ -12,10 +12,19 @@ exports.register = async (req, res) => {
     const user = new User({ name, email, password: hashedPassword });
     await user.save();
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    console.log('🔐 Generating token for user:', user._id);
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error('❌ JWT_SECRET is not set!');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+    
+    const token = jwt.sign({ userId: user._id }, jwtSecret, { expiresIn: '7d' });
+    console.log('✓ Token generated successfully');
+    
     res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email } });
   } catch (error) {
-    console.error('Registration Error:', error);
+    console.error('❌ Registration Error:', error);
     res.status(500).json({ error: 'Registration failed', details: error.message });
   }
 };
@@ -29,9 +38,19 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    console.log('🔐 Generating token for user:', user._id);
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error('❌ JWT_SECRET is not set!');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+    
+    const token = jwt.sign({ userId: user._id }, jwtSecret, { expiresIn: '7d' });
+    console.log('✓ Token generated successfully');
+    
     res.json({ token, user: { id: user._id, name: user.name, email: user.email, resumeData: user.resumeData } });
   } catch (error) {
+    console.error('❌ Login Error:', error);
     res.status(500).json({ error: 'Login failed' });
   }
 };
