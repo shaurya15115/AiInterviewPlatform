@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Play, Trash2, HelpCircle } from 'lucide-react';
@@ -10,10 +10,6 @@ const Dashboard = ({ startNewInterview }) => {
   const [loading, setLoading] = useState(true);
   const [showGuide, setShowGuide] = useState(false);
 
-  useEffect(() => {
-    fetchInterviews();
-  }, []);
-
   const fetchInterviews = async () => {
     try {
       const res = await api.get('/interview');
@@ -24,6 +20,13 @@ const Dashboard = ({ startNewInterview }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchInterviews();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleDelete = async (e, id) => {
     e.stopPropagation();
@@ -244,7 +247,7 @@ const Dashboard = ({ startNewInterview }) => {
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-primary">{Math.round(interview.averageScore)}<span className="text-sm text-primary/70">/{interview.questionCount * 30}</span></p>
+                      <p className="text-2xl font-bold text-primary">{interview.totalScore}<span className="text-sm text-primary/70">/{interview.questionCount * 30}</span></p>
                       <p className="text-xs text-textMuted uppercase tracking-widest">Total Score</p>
                     </div>
                     <button 

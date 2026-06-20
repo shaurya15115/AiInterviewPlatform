@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, Square, Loader2, ChevronRight, Activity, Bot, Clock, Terminal, Keyboard, Send, Signal, CheckCircle2, Lock } from 'lucide-react';
 import { useVoiceProcessor } from '../hooks/useVoiceProcessor';
@@ -6,12 +6,12 @@ import VoiceVisualizer from './VoiceVisualizer';
 import ResultsPage from './ResultsPage';
 import api from '../utils/api';
 
-const InterviewEngine = ({ interviewId, initialQuestions, onComplete, interviewType = 'Technical' }) => {
+const InterviewEngine = ({ interviewId, initialQuestions, onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [questionStartTime, setQuestionStartTime] = useState(Date.now());
+  const [questionStartTime, setQuestionStartTime] = useState(() => Date.now());
   const [textAnswersCount, setTextAnswersCount] = useState(0);
   const [isTextInputMode, setIsTextInputMode] = useState(false);
   const [textInput, setTextInput] = useState('');
@@ -31,9 +31,7 @@ const InterviewEngine = ({ interviewId, initialQuestions, onComplete, interviewT
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    setQuestionStartTime(Date.now());
-  }, [currentIndex]);
+  // Start time set on mount and updated on nextQuestion
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -41,41 +39,7 @@ const InterviewEngine = ({ interviewId, initialQuestions, onComplete, interviewT
     return `${m}:${s}`;
   };
 
-  useEffect(() => {
-    if (audioBlob && !isProcessing) {
-      submitAnswer(audioBlob);
-    }
-  }, [audioBlob]);
-
-  const handleTextSubmit = () => {
-    if (!textInput.trim()) return;
-    submitAnswer(null, textInput.trim());
-    setTextAnswersCount(prev => prev + 1);
-    setIsTextInputMode(false);
-    setTextInput('');
-  };
-
-  const speakText = (text) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      setIsAiSpeaking(true);
-      utterance.onend = () => setIsAiSpeaking(false);
-      utterance.onerror = () => setIsAiSpeaking(false);
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-
-  useEffect(() => {
-    if (questions[currentIndex] && !feedback) {
-      speakText(questions[currentIndex].content);
-    }
-    return () => {
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    };
-  }, [currentIndex, questions, feedback]);
-
-  const submitAnswer = async (blob, textOverride = null) => {
+  const submitAnswer = useCallback(async (blob, textOverride = null) => {
     setIsProcessing(true);
     const formData = new FormData();
     if (blob) formData.append('audio', blob, 'answer.webm');
@@ -104,7 +68,48 @@ const InterviewEngine = ({ interviewId, initialQuestions, onComplete, interviewT
     } finally {
       setIsProcessing(false);
     }
+  }, [interviewId, currentIndex, questionStartTime]);
+
+  useEffect(() => {
+    if (audioBlob && !isProcessing) {
+      const timer = setTimeout(() => {
+        submitAnswer(audioBlob);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [audioBlob, isProcessing, submitAnswer]);
+
+  const handleTextSubmit = () => {
+    if (!textInput.trim()) return;
+    submitAnswer(null, textInput.trim());
+    setTextAnswersCount(prev => prev + 1);
+    setIsTextInputMode(false);
+    setTextInput('');
   };
+
+  const speakText = (text) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      setTimeout(() => {
+        setIsAiSpeaking(true);
+      }, 0);
+      utterance.onend = () => setIsAiSpeaking(false);
+      utterance.onerror = () => setIsAiSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  useEffect(() => {
+    if (questions[currentIndex] && !feedback) {
+      speakText(questions[currentIndex].content);
+    }
+    return () => {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    };
+  }, [currentIndex, questions, feedback]);
+
+  // submitAnswer defined above
 
   const handleSkip = () => {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -133,6 +138,7 @@ const InterviewEngine = ({ interviewId, initialQuestions, onComplete, interviewT
     setFeedback(null);
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(prev => prev + 1);
+      setQuestionStartTime(Date.now());
     } else {
       api.get(`/interview/${interviewId}`).then(res => {
         setInterviewData(res.data);

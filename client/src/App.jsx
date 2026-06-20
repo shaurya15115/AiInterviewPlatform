@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from './store/useStore';
 import Dashboard from './components/Dashboard';
 import InterviewEngine from './components/InterviewEngine';
@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
   const { token, setAuth, logout, theme, toggleTheme } = useStore();
-  const [view, setView] = useState('login');
+  const [view, setView] = useState('dashboard');
   const [isLogin, setIsLogin] = useState(true);
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
   const [setupState, setSetupState] = useState({ 
@@ -20,10 +20,6 @@ function App() {
     isUploading: false 
   });
   const [interviewState, setInterviewState] = useState(null);
-
-  useEffect(() => {
-    if (token) setView('dashboard');
-  }, [token]);
 
   useEffect(() => {
     if (theme === 'dark') {
