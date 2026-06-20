@@ -14,8 +14,12 @@ exports.uploadResume = async (req, res) => {
     user.resumeData = parsedData;
     await user.save();
 
-    // Clean up uploaded file
-    fs.unlinkSync(req.file.path);
+    // Clean up uploaded file safely
+    try {
+      fs.unlinkSync(req.file.path);
+    } catch (unlinkError) {
+      console.warn(`Warning: Could not delete temporary file ${req.file.path}:`, unlinkError.message);
+    }
 
     res.json({ message: 'Resume parsed successfully', resumeData: parsedData });
   } catch (error) {
@@ -63,7 +67,12 @@ exports.evaluateAnswer = async (req, res) => {
     
     if (req.file) {
       answerText = await AIService.transcribeAudio(req.file.path);
-      fs.unlinkSync(req.file.path);
+      // Clean up audio file safely
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkError) {
+        console.warn(`Warning: Could not delete temporary audio file ${req.file.path}:`, unlinkError.message);
+      }
     }
 
     if (!answerText) {

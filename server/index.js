@@ -20,7 +20,8 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 // Middleware
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json());
 
 // Routes
@@ -33,13 +34,33 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!', details: err.message });
 });
 
-// Database Connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('Connected to MongoDB');
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => console.error('MongoDB connection error:', err));
+// Database Connection with Retry Logic
+const connectDB = async () => {
+  const maxRetries = 5;
+  let retries = 0;
+  
+  while (retries < maxRetries) {
+    try {
+      await mongoose.connect(process.env.MONGODB_URI);
+      console.log('✓ Connected to MongoDB');
+      return;
+    } catch (err) {
+      retries++;
+      console.error(`MongoDB connection error (attempt ${retries}/${maxRetries}):`, err.message);
+      if (retries < maxRetries) {
+        console.log(`Retrying in 5 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+  }
+  
+  console.error('✗ Failed to connect to MongoDB after multiple attempts. Exiting...');
+  process.exit(1);
+};
+
+connectDB().then(() => {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`✓ Server running on port ${PORT}`);
+  });
+});

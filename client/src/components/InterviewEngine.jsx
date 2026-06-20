@@ -5,7 +5,6 @@ import { useVoiceProcessor } from '../hooks/useVoiceProcessor';
 import VoiceVisualizer from './VoiceVisualizer';
 import ResultsPage from './ResultsPage';
 import api from '../utils/api';
-import { getTipsForInterviewType } from '../utils/interviewTips';
 
 const InterviewEngine = ({ interviewId, initialQuestions, onComplete, interviewType = 'Technical' }) => {
   const [currentIndex, setCurrentIndex] = useState(0);

@@ -22,7 +22,21 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 25 * 1024 * 1024 // 25MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Only allow specific file types
+    const allowedMimes = ['application/pdf', 'audio/webm', 'audio/wav', 'audio/mpeg'];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Invalid file type: ${file.mimetype}. Only PDF and audio files allowed.`), false);
+    }
+  }
+});
 
 router.post('/upload-resume', auth, upload.single('resume'), validateResume, interviewController.uploadResume);
 router.post('/start', auth, validateInterviewStart, interviewController.startInterview);
@@ -30,5 +44,18 @@ router.post('/:id/evaluate', auth, upload.single('audio'), validateAnswer, inter
 router.get('/', auth, interviewController.getInterviews);
 router.get('/:id', auth, interviewController.getInterviewDetails);
 router.delete('/:id', auth, interviewController.deleteInterview);
+
+// Error handling for multer
+router.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'FILE_TOO_LARGE') {
+      return res.status(413).json({ error: 'File size exceeds 25MB limit' });
+    }
+    return res.status(400).json({ error: `Upload error: ${err.message}` });
+  } else if (err) {
+    return res.status(400).json({ error: err.message });
+  }
+  next();
+});
 
 module.exports = router;

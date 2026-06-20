@@ -17,9 +17,13 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Token is invalid/expired, log out the user
-      useStore.getState().logout();
-      window.location.href = '/'; // Force reload to show login screen
+      const currentPath = window.location.pathname;
+      // Prevent infinite redirect loops
+      if (currentPath !== '/') {
+        // Token is invalid/expired, log out the user
+        useStore.getState().logout();
+        window.location.href = '/';
+      }
     }
     return Promise.reject(error);
   }
