@@ -29,6 +29,7 @@ app.use('/api', limiter);
 
 // Middleware
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+console.log('✓ CORS configured for:', corsOrigin);
 app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json());
 
