@@ -2,15 +2,25 @@ const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.split(' ')[1];
+    
     if (!token) {
-      return res.status(401).json({ error: 'Authentication required' });
+      console.warn('No token provided in request');
+      return res.status(401).json({ error: 'Authentication required - no token provided' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error('JWT_SECRET not configured in environment');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+
+    const decoded = jwt.verify(token, jwtSecret);
     req.userId = decoded.userId;
     next();
   } catch (error) {
+    console.error('JWT verification error:', error.message);
     res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
