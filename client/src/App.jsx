@@ -55,7 +55,7 @@ function App() {
       await api.post('/interview/upload-resume', formData);
 
       const res = await api.post('/interview/start', { 
-        jobDescription: setupState.jd,
+        jobDescription: setupState.jd || 'General technical interview',
         questionCount: setupState.questionCount,
         difficulty: setupState.difficulty,
         type: setupState.type
@@ -63,8 +63,8 @@ function App() {
       setInterviewState({ id: res.data.interviewId, questions: res.data.questions });
       setView('interview');
     } catch (err) {
-      console.error(err);
-      alert('Failed to start interview');
+      console.error('Start Interview Error:', err);
+      alert(err.response?.data?.error || 'Failed to start interview');
     } finally {
       setSetupState(prev => ({ ...prev, isUploading: false }));
     }

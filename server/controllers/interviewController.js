@@ -31,7 +31,16 @@ exports.uploadResume = async (req, res) => {
 exports.startInterview = async (req, res) => {
   try {
     const { jobDescription, questionCount = 5, difficulty = 'Medium', type = 'Technical' } = req.body;
+    
+    if (!jobDescription) {
+      return res.status(400).json({ error: 'Job description is required' });
+    }
+    
     const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
     if (!user.resumeData || !user.resumeData.rawText) {
       return res.status(400).json({ error: 'Please upload a resume first' });
     }
@@ -54,7 +63,8 @@ exports.startInterview = async (req, res) => {
     await interview.save();
     res.json({ interviewId: interview._id, questions: generatedQuestions });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Start Interview Error:", error);
+    res.status(500).json({ error: error.message || 'Failed to start interview' });
   }
 };
 
